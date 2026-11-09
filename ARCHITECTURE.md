@@ -40,9 +40,9 @@ flowchart TD
 
 ### 接入规则
 
-- 所有仓库统一 `main` 分支，壳与装配层用 `git: { url, ref: main }` 接入；
-  本地阶段 `url` 是绝对路径，上远程后只改 `url`。
-- **git 依赖只认已提交内容**：改完某仓库的 pubspec/代码必须 commit，下游才能 `pub get` 到。
+- 所有仓库统一 `main` 分支，全部托管在 `github.com/martin-flutter-8205/`，
+  壳与装配层用 `git: { url, ref: main }` 接入。
+- **git 依赖只认已提交内容**：改完某仓库的 pubspec/代码必须 commit 并 push，下游才能 `pub get` 到。
 - **pub 的 git 依赖不允许 path 指向仓库外**，所以每个包都必须是自洽的单包仓库。
 - 本地联调未提交改动：用 `dependency_overrides:` 临时指向本地 `path:`，业务代码零改动。
 
@@ -53,7 +53,7 @@ dependencies:
     sdk: flutter
   xc_app_module:
     git:
-      url: <xc_app_module 仓库地址>   # 本地仓库阶段是绝对路径
+      url: git@github.com:martin-flutter-8205/xc_app_module.git
       ref: main
 ```
 
@@ -139,6 +139,19 @@ xc run -d chrome
 | `check` | 静态分析 + 全部测试 |
 | `run` | 启动 App |
 
+包拆成独立仓库后，`xc` 靠 App 根目录的 `xc.yaml` 工作区清单定位代码（相对路径）：
+
+```yaml
+# xc_app/xc.yaml
+workspace:
+  - ../xc_platform
+  - ../xc_ui
+  - ../xc_launch
+  - ../xc_index
+  - ../xc_app_module
+```
+
+`gen / assets / check` 都按这份清单扫描；旧布局的 `packages/*` 仍然兼容（存在就自动纳入）。
 资源跟着包走：业务包的图放该包 `assets/` 并在该包 pubspec 声明；App 图标/启动图才放壳工程。
 
 ## 六、当前验证状态
